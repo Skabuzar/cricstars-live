@@ -3,110 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <title>CricStars Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:#0b1220;
-  color:#fff;
+  font-family: Arial;
+  background: linear-gradient(#081a33,#020b17);
+  color:white;
   text-align:center;
 }
-button{
-  padding:12px;
-  margin:6px;
-  font-size:16px;
-  border:none;
-  border-radius:8px;
-  background:#1e90ff;
-  color:white;
-}
-button.red{background:#e63946}
-button.green{background:#2ecc71}
-input{
-  padding:10px;
-  width:80%;
-  margin:6px;
-  border-radius:6px;
-  border:none;
-}
 .box{
-  background:#121c2e;
-  margin:12px;
-  padding:15px;
-  border-radius:12px;
+  background:#0b1f3a;
+  margin:15px;
+  padding:20px;
+  border-radius:15px;
 }
+button{
+  padding:12px 18px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+}
+.run{background:#1e88e5;color:white}
+.extra{background:#43a047;color:white}
+.wicket{background:#e53935;color:white}
 </style>
 </head>
 
 <body>
 
-<h2>🛠 CricStars Admin Panel</h2>
+<h1>🛠 CricStars Admin</h1>
+
+<h2 id="adminScore">Score: 0/0</h2>
+<h3 id="adminOvers">Overs: 0.0</h3>
+<p id="adminLastWicket">Last Wicket: -</p>
 
 <div class="box">
-<h3>Score</h3>
-<button onclick="addRun(0)">0</button>
-<button onclick="addRun(1)">1</button>
-<button onclick="addRun(2)">2</button>
-<button onclick="addRun(3)">3</button>
-<button onclick="addRun(4)">4</button>
-<button onclick="addRun(6)">6</button>
-<br>
-<button class="green" onclick="wide()">Wide +1</button>
-<button class="green" onclick="noBall()">No Ball +1</button>
+  <b>Runs</b><br>
+  <button class="run" onclick="addRun(0)">0</button>
+  <button class="run" onclick="addRun(1)">1</button>
+  <button class="run" onclick="addRun(2)">2</button>
+  <button class="run" onclick="addRun(3)">3</button>
+  <button class="run" onclick="addRun(4)">4</button>
+  <button class="run" onclick="addRun(6)">6</button><br>
+  <button class="extra" onclick="extra()">Wide +1</button>
+  <button class="extra" onclick="extra()">No Ball +1</button>
 </div>
 
 <div class="box">
-<h3>Overs</h3>
-<button onclick="ball()">Legal Ball</button>
+  <b>Overs</b><br>
+  <button class="run" onclick="legalBall()">Legal Ball</button>
 </div>
 
 <div class="box">
-<h3>Wicket</h3>
-<input id="wicketType" placeholder="Bowled / LBW / Run Out / Hit Wicket / Retired Out">
-<input id="batsman" placeholder="Batsman Name">
-<button class="red" onclick="wicket()">Add Wicket</button>
+  <b>Wicket</b><br>
+  <input id="type" placeholder="Bowled / LBW / Run Out"><br><br>
+  <input id="name" placeholder="Batsman Name"><br><br>
+  <button class="wicket" onclick="addWicket()">Add Wicket</button>
 </div>
 
-<div class="box">
-<button class="red" onclick="resetMatch()">RESET MATCH</button>
-</div>
+<button class="wicket" onclick="resetMatch()">RESET MATCH</button>
 
 <script src="firebase.js"></script>
-
 <script>
-let runs=0, wickets=0, balls=0, overs="0.0", fow="";
+let ref = firebase.database().ref("match/summary");
 
-function update(){
-  overs=Math.floor(balls/6)+"."+(balls%6);
-  firebase.database().ref("match/summary").set({runs,wickets,overs});
-  firebase.database().ref("match/fow").set(fow);
+function update(cb){
+  ref.once("value").then(s=>{
+    let d = s.val() || {runs:0,wickets:0,overs:0,balls:0};
+    cb(d);
+    ref.set(d);
+  });
 }
 
-function addRun(r){runs+=r; update();}
-function wide(){runs+=1; update();}
-function noBall(){runs+=1; update();}
-function ball(){balls++; update();}
+function addRun(r){
+  update(d=>{ d.runs += r; });
+}
 
-function wicket(){
-  wickets++;
-  let type=document.getElementById("wicketType").value;
-  let bat=document.getElementById("batsman").value;
-  let text=bat+" - "+type+" ("+runs+"/"+wickets+")";
-  fow+=text+"\n";
-  firebase.database().ref("match/lastWicket").set(text);
-  update();
+function extra(){
+  update(d=>{ d.runs += 1; });
+}
+
+function legalBall(){
+  update(d=>{
+    d.balls++;
+    if(d.balls==6){
+      d.balls=0;
+      d.overs++;
+    }
+  });
+}
+
+function addWicket(){
+  let t = document.getElementById("type").value;
+  let n = document.getElementById("name").value;
+  if(!t || !n) return alert("Details bharo");
+
+  update(d=>{ d.wickets++; });
+
+  firebase.database().ref("match/lastWicket")
+    .set(n + " - " + t);
+
+  firebase.database().ref("match/fallOfWickets")
+    .transaction(v => (v||"") + "\n" + n + " - " + t);
+
+  document.getElementById("type").value="";
+  document.getElementById("name").value="";
 }
 
 function resetMatch(){
-  runs=0; wickets=0; balls=0; fow="";
   firebase.database().ref("match").set({
-    summary:{runs:0,wickets:0,overs:"0.0"},
-    lastWicket:"—",
-    fow:"—"
+    summary:{runs:0,wickets:0,overs:0,balls:0},
+    lastWicket:"-",
+    fallOfWickets:"-"
   });
 }
+
+// 🔥 LIVE VIEW IN ADMIN
+firebase.database().ref("match").on("value", s=>{
+  if(!s.exists()) return;
+  let d=s.val(), m=d.summary;
+  adminScore.innerText="Score: "+m.runs+"/"+m.wickets;
+  adminOvers.innerText="Overs: "+m.overs+"."+m.balls;
+  adminLastWicket.innerText="Last Wicket: "+(d.lastWicket||"-");
+});
 </script>
 
 </body>
-</html>
+</html></html>
