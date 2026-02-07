@@ -3,63 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <title>CricStars Live</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{
   margin:0;
-  font-family: Arial;
-  background: linear-gradient(#050b1c,#020617);
-  color:white;
+  font-family:Arial;
+  background:#06121f;
+  color:#fff;
   text-align:center;
 }
-h1{margin-top:30px}
 .box{
-  background:#0b1228;
-  margin:15px;
+  background:#0b1f33;
+  margin:12px;
   padding:15px;
   border-radius:12px;
 }
+h1{margin-top:20px}
 </style>
 </head>
 
 <body>
 
-<h1>CricStars</h1>
+<h1>🏏 CricStars Live</h1>
+
 <h2 id="score">0/0</h2>
 <h3>Overs: <span id="overs">0.0</span></h3>
 
 <div class="box">
 <b>Last Wicket</b>
-<p id="lastWicket">-</p>
+<p id="lastWicket">—</p>
 </div>
 
 <div class="box">
 <b>Fall of Wickets</b>
-<pre id="fow">-</pre>
+<pre id="fow">—</pre>
 </div>
 
 <script src="firebase.js"></script>
 
 <script>
-firebase.database().ref("match/summary")
-.on("value",s=>{
+firebase.database().ref("match/summary").on("value", s=>{
   if(!s.exists()) return;
   let d=s.val();
   document.getElementById("score").innerText=d.runs+"/"+d.wickets;
   document.getElementById("overs").innerText=d.overs;
 });
 
-firebase.database().ref("match/lastWicket")
-.on("value",s=>{
-  document.getElementById("lastWicket").innerText=s.val()||"-";
+firebase.database().ref("match/lastWicket").on("value", s=>{
+  if(s.exists()) document.getElementById("lastWicket").innerText=s.val();
 });
 
-firebase.database().ref("match/fallOfWickets")
-.on("value",s=>{
-  let t="";
-  s.forEach(c=>t+=c.val()+"\n");
-  document.getElementById("fow").innerText=t||"-";
+firebase.database().ref("match/fow").on("value", s=>{
+  if(s.exists()) document.getElementById("fow").innerText=s.val();
 });
 </script>
 
