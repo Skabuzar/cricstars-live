@@ -1,24 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>CricStars Live</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:#06121f;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#050b1c,#020617);
   color:#fff;
   text-align:center;
 }
-.box{
-  background:#0b1f33;
-  margin:12px;
-  padding:15px;
-  border-radius:12px;
+h1{
+  margin-top:30px;
+  font-size:28px;
 }
-h1{margin-top:20px}
+.score{
+  font-size:48px;
+  font-weight:bold;
+  margin:10px 0;
+}
+.overs{
+  font-size:20px;
+  opacity:0.9;
+}
+.card{
+  background:#0b1228;
+  margin:18px;
+  padding:20px;
+  border-radius:16px;
+}
+.card h3{
+  margin:0 0 10px;
+}
+pre{
+  white-space:pre-wrap;
+  font-size:16px;
+}
+.footer{
+  opacity:0.5;
+  font-size:12px;
+  margin:20px;
+}
 </style>
 </head>
 
@@ -26,35 +51,41 @@ h1{margin-top:20px}
 
 <h1>🏏 CricStars Live</h1>
 
-<h2 id="score">0/0</h2>
-<h3>Overs: <span id="overs">0.0</span></h3>
+<div class="score" id="score">0/0</div>
+<div class="overs">Overs: <span id="overs">0.0</span></div>
 
-<div class="box">
-<b>Last Wicket</b>
-<p id="lastWicket">—</p>
+<div class="card">
+  <h3>Last Wicket</h3>
+  <div id="lastWicket">-</div>
 </div>
 
-<div class="box">
-<b>Fall of Wickets</b>
-<pre id="fow">—</pre>
+<div class="card">
+  <h3>Fall of Wickets</h3>
+  <pre id="fow">-</pre>
 </div>
 
+<div class="footer">Live powered by CricStars</div>
+
+<!-- Firebase -->
 <script src="firebase.js"></script>
 
 <script>
-firebase.database().ref("match/summary").on("value", s=>{
-  if(!s.exists()) return;
-  let d=s.val();
-  document.getElementById("score").innerText=d.runs+"/"+d.wickets;
-  document.getElementById("overs").innerText=d.overs;
-});
+firebase.database().ref("match").on("value", snapshot => {
+  if(!snapshot.exists()) return;
 
-firebase.database().ref("match/lastWicket").on("value", s=>{
-  if(s.exists()) document.getElementById("lastWicket").innerText=s.val();
-});
+  let d = snapshot.val();
 
-firebase.database().ref("match/fow").on("value", s=>{
-  if(s.exists()) document.getElementById("fow").innerText=s.val();
+  document.getElementById("score").innerText =
+    (d.runs ?? 0) + "/" + (d.wickets ?? 0);
+
+  document.getElementById("overs").innerText =
+    d.overs ?? "0.0";
+
+  document.getElementById("lastWicket").innerText =
+    d.lastWicket && d.lastWicket !== "" ? d.lastWicket : "-";
+
+  document.getElementById("fow").innerText =
+    d.fow && d.fow !== "" ? d.fow : "-";
 });
 </script>
 
