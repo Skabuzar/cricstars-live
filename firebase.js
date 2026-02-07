@@ -1,8 +1,5 @@
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+// Firebase v8 config (simple & stable)
 
-<script>
 var firebaseConfig = {
   apiKey: "AIzaSyBS9-IlXaoOdnDKaxxvpUr2Fo1YFyfUP78",
   authDomain: "cricstars--12.firebaseapp.com",
@@ -12,5 +9,9 @@ var firebaseConfig = {
   messagingSenderId: "451935240165",
   appId: "1:451935240165:web:3edd4b421e6317b13b390c"
 };
+
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-</script>
+
+// Database reference
+var db = firebase.database();
