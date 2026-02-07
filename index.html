@@ -1,10 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="refresh" content="0; url=live.html">
-  <title>CricStars</title>
+<meta charset="UTF-8">
+<title>CricStars Live</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background: linear-gradient(#06162b,#020b17);
+  color:white;
+  text-align:center;
+}
+.box{
+  background:#0b1f3a;
+  margin:15px;
+  padding:20px;
+  border-radius:15px;
+}
+h1{margin-top:30px}
+</style>
 </head>
+
 <body>
-Redirecting to Live Match...
+
+<h1>🏏 CricStars Live</h1>
+<h2 id="score">0/0</h2>
+<h3>Overs: <span id="overs">0.0</span></h3>
+
+<div class="box">
+  <b>Last Wicket</b>
+  <p id="lastWicket">-</p>
+</div>
+
+<div class="box">
+  <b>Fall of Wickets</b>
+  <pre id="fow">-</pre>
+</div>
+
+<script src="firebase.js"></script>
+<script>
+firebase.database().ref("match").on("value", snap=>{
+  if(!snap.exists()) return;
+  let d = snap.val();
+  let s = d.summary;
+
+  document.getElementById("score").innerText =
+    s.runs + "/" + s.wickets;
+
+  document.getElementById("overs").innerText =
+    s.overs + "." + s.balls;
+
+  document.getElementById("lastWicket").innerText =
+    d.lastWicket || "-";
+
+  document.getElementById("fow").innerText =
+    d.fallOfWickets || "-";
+});
+</script>
+
 </body>
 </html>
