@@ -1,95 +1,16 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>CricStars – Match Setup</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  font-family: Arial;
-  background: linear-gradient(#050b1c,#020617);
-  color:white;
-  text-align:center;
-}
-h1{
-  margin-top:40px;
-}
-.card{
-  background:#0b1228;
-  margin:20px;
-  padding:20px;
-  border-radius:14px;
-}
-input{
-  width:85%;
-  padding:14px;
-  margin:10px 0;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-}
-button{
-  width:90%;
-  padding:14px;
-  margin-top:15px;
-  border:none;
-  border-radius:12px;
-  font-size:18px;
-  background:#22c55e;
-  color:white;
-}
-</style>
-</head>
-
+<head><title>Setup</title></head>
 <body>
-
-<h1>CricStars</h1>
-
-<div class="card">
-  <input id="tournament" placeholder="Tournament Name">
-  <input id="teamA" placeholder="Team A Name">
-  <input id="teamB" placeholder="Team B Name">
-  <input id="overs" type="number" placeholder="Total Overs">
-  <button onclick="startMatch()">START MATCH</button>
-</div>
-
+<button onclick="setup()">Start New Match</button>
 <script src="firebase.js"></script>
-
 <script>
-function startMatch(){
-  let t = document.getElementById("tournament").value;
-  let a = document.getElementById("teamA").value;
-  let b = document.getElementById("teamB").value;
-  let o = document.getElementById("overs").value;
-
-  if(!t || !a || !b || !o){
-    alert("Please fill all fields");
-    return;
-  }
-
+function setup(){
   firebase.database().ref("match").set({
-    info:{
-      tournament: t,
-      teamA: a,
-      teamB: b,
-      totalOvers: o
-    },
-    summary:{
-      runs:0,
-      wickets:0,
-      balls:0,
-      overs:"0.0"
-    },
-    lastWicket:"-",
-    fallOfWickets:""
+    runs:0,wickets:0,balls:0,overs:"0.0",lastWicket:"-",fow:""
   });
-
-  // Admin panel open
-  window.location.href="admin.html";
+  alert("Match Ready");
 }
 </script>
-
 </body>
 </html>
