@@ -2,154 +2,109 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CricStars</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>CricStars Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{
   margin:0;
-  font-family: Arial;
-  background: linear-gradient(#050b1c,#020617);
-  color:white;
+  font-family:Arial;
+  background:#0b1220;
+  color:#fff;
   text-align:center;
 }
-h1{margin-top:30px}
-.card{
-  background:#0b1228;
-  margin:15px;
+button{
+  padding:12px;
+  margin:6px;
+  font-size:16px;
+  border:none;
+  border-radius:8px;
+  background:#1e90ff;
+  color:white;
+}
+button.red{background:#e63946}
+button.green{background:#2ecc71}
+input{
+  padding:10px;
+  width:80%;
+  margin:6px;
+  border-radius:6px;
+  border:none;
+}
+.box{
+  background:#121c2e;
+  margin:12px;
   padding:15px;
   border-radius:12px;
-}
-button{
-  padding:12px 18px;
-  margin:6px;
-  border:none;
-  border-radius:8px;
-  font-size:16px;
-}
-.run{background:#e5e7eb}
-.green{background:#10b981;color:white}
-.red{background:#ef4444;color:white}
-input,select{
-  padding:12px;
-  width:80%;
-  margin:8px;
-  border-radius:8px;
-  border:none;
-  font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>CricStars</h1>
-<h2 id="score">0/0</h2>
-<h3>Overs: <span id="overs">0.0</span></h3>
+<h2>🛠 CricStars Admin Panel</h2>
 
-<div class="card">
-<h3>Runs</h3>
-<button class="run" onclick="addRun(1)">+1</button>
-<button class="run" onclick="addRun(2)">+2</button>
-<button class="run" onclick="addRun(3)">+3</button>
-<button class="run" onclick="addRun(4)">+4</button>
-<button class="run" onclick="addRun(6)">+6</button>
-</div>
-
-<div class="card">
-<h3>Extras</h3>
-<input id="extraRuns" type="number" placeholder="Extra / Bat Runs (optional)">
+<div class="box">
+<h3>Score</h3>
+<button onclick="addRun(0)">0</button>
+<button onclick="addRun(1)">1</button>
+<button onclick="addRun(2)">2</button>
+<button onclick="addRun(3)">3</button>
+<button onclick="addRun(4)">4</button>
+<button onclick="addRun(6)">6</button>
 <br>
-<button class="run" onclick="extra('Wide')">Wide</button>
-<button class="run" onclick="extra('No Ball')">No Ball</button>
-<button class="run" onclick="extra('Bye')">Bye</button>
-<button class="run" onclick="extra('Leg Bye')">Leg Bye</button>
+<button class="green" onclick="wide()">Wide +1</button>
+<button class="green" onclick="noBall()">No Ball +1</button>
 </div>
 
-<div class="card">
+<div class="box">
+<h3>Overs</h3>
+<button onclick="ball()">Legal Ball</button>
+</div>
+
+<div class="box">
 <h3>Wicket</h3>
-<select id="wicketType">
-  <option value="">Select Wicket Type</option>
-  <option>Bowled</option>
-  <option>Caught</option>
-  <option>LBW</option>
-  <option>Run Out</option>
-  <option>Hit Wicket</option>
-  <option>Retired Out</option>
-</select>
-<br>
-<input id="runOutRuns" type="number" placeholder="Run Out Runs (optional)">
-<br>
-<button class="red" onclick="addWicket()">Add Wicket</button>
+<input id="wicketType" placeholder="Bowled / LBW / Run Out / Hit Wicket / Retired Out">
+<input id="batsman" placeholder="Batsman Name">
+<button class="red" onclick="wicket()">Add Wicket</button>
 </div>
 
-<div class="card">
-<button class="green" onclick="undo()">UNDO LAST BALL</button>
-<br>
+<div class="box">
 <button class="red" onclick="resetMatch()">RESET MATCH</button>
 </div>
 
 <script src="firebase.js"></script>
 
 <script>
-let runs=0,wickets=0,balls=0;
-let history=[];
-const ref=firebase.database().ref("match");
+let runs=0, wickets=0, balls=0, overs="0.0", fow="";
 
 function update(){
-  document.getElementById("score").innerText=runs+"/"+wickets;
-  document.getElementById("overs").innerText=
-    Math.floor(balls/6)+"."+(balls%6);
-
-  ref.child("summary").set({
-    runs,wickets,balls,
-    overs:Math.floor(balls/6)+"."+(balls%6)
-  });
+  overs=Math.floor(balls/6)+"."+(balls%6);
+  firebase.database().ref("match/summary").set({runs,wickets,overs});
+  firebase.database().ref("match/fow").set(fow);
 }
 
-function save(){history.push({runs,wickets,balls});}
+function addRun(r){runs+=r; update();}
+function wide(){runs+=1; update();}
+function noBall(){runs+=1; update();}
+function ball(){balls++; update();}
 
-function addRun(r){
-  save();
-  runs+=r; balls++;
-  ref.child("log").push({type:"run",runs:r});
-  update();
-}
-
-function extra(type){
-  save();
-  let er=parseInt(document.getElementById("extraRuns").value)||1;
-  runs+=er;
-  ref.child("log").push({type:type,runs:er});
-  update();
-}
-
-function addWicket(){
+function wicket(){
+  wickets++;
   let type=document.getElementById("wicketType").value;
-  if(!type) return alert("Select wicket type");
-  save();
-  let r=parseInt(document.getElementById("runOutRuns").value)||0;
-  runs+=r; wickets++; balls++;
-
-  let text=runs+"/"+wickets+" ("+type+")";
-  ref.child("lastWicket").set(text);
-  ref.child("fallOfWickets").push(text);
-
-  update();
-}
-
-function undo(){
-  if(history.length==0) return;
-  let h=history.pop();
-  runs=h.runs; wickets=h.wickets; balls=h.balls;
+  let bat=document.getElementById("batsman").value;
+  let text=bat+" - "+type+" ("+runs+"/"+wickets+")";
+  fow+=text+"\n";
+  firebase.database().ref("match/lastWicket").set(text);
   update();
 }
 
 function resetMatch(){
-  if(!confirm("Reset match?")) return;
-  runs=0; wickets=0; balls=0;
-  ref.set({});
-  update();
+  runs=0; wickets=0; balls=0; fow="";
+  firebase.database().ref("match").set({
+    summary:{runs:0,wickets:0,overs:"0.0"},
+    lastWicket:"—",
+    fow:"—"
+  });
 }
 </script>
 
